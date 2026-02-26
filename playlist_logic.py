@@ -23,7 +23,8 @@ def normalize_artist(artist: str) -> str:
     """Normalize an artist name for comparisons."""
     if not artist:
         return ""
-    return artist.strip().lower()
+    # Fix: preserve original casing so artist names display correctly in the UI
+    return artist.strip()
 
 
 def normalize_genre(genre: str) -> str:
@@ -71,7 +72,8 @@ def classify_song(song: Song, profile: Dict[str, object]) -> str:
     chill_keywords = ["lofi", "ambient", "sleep"]
 
     is_hype_keyword = any(k in genre for k in hype_keywords)
-    is_chill_keyword = any(k in title for k in chill_keywords)
+    # Chill keywords match against title case-insensitively (normalize_title preserves case)
+    is_chill_keyword = any(k in title.lower() for k in chill_keywords)
 
     if genre == favorite_genre or energy >= hype_min_energy or is_hype_keyword:
         return "Hype"
@@ -116,12 +118,14 @@ def compute_playlist_stats(playlists: PlaylistMap) -> Dict[str, object]:
     chill = playlists.get("Chill", [])
     mixed = playlists.get("Mixed", [])
 
-    total = len(hype)
+    # Fix: total should be all songs, not just hype, so hype_ratio is meaningful
+    total = len(all_songs)
     hype_ratio = len(hype) / total if total > 0 else 0.0
 
     avg_energy = 0.0
     if all_songs:
-        total_energy = sum(song.get("energy", 0) for song in hype)
+        # Fix: avg_energy should average all songs, not just hype songs
+        total_energy = sum(song.get("energy", 0) for song in all_songs)
         avg_energy = total_energy / len(all_songs)
 
     top_artist, top_count = most_common_artist(all_songs)
@@ -168,7 +172,8 @@ def search_songs(
 
     for song in songs:
         value = str(song.get(field, "")).lower()
-        if value and value in q:
+        # Fix: query should be checked as substring of field value, not the reverse
+        if value and q in value:
             filtered.append(song)
 
     return filtered
@@ -193,6 +198,9 @@ def random_choice_or_none(songs: List[Song]) -> Optional[Song]:
     """Return a random song or None."""
     import random
 
+    # Fix: random.choice raises IndexError on empty list; return None instead
+    if not songs:
+        return None
     return random.choice(songs)
 
 
