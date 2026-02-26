@@ -196,14 +196,15 @@ def profile_sidebar():
 
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        profile["hype_min_energy"] = st.sidebar.slider(
+        # Use st.slider (not st.sidebar.slider) so the widget renders inside the column
+        profile["hype_min_energy"] = st.slider(
             "Hype min energy",
             min_value=1,
             max_value=10,
             value=int(profile.get("hype_min_energy", 7)),
         )
     with col2:
-        profile["chill_max_energy"] = st.sidebar.slider(
+        profile["chill_max_energy"] = st.slider(
             "Chill max energy",
             min_value=1,
             max_value=10,
@@ -378,10 +379,9 @@ def main():
     st.set_page_config(page_title="Playlist Chaos", layout="wide")
     st.title("Playlist Chaos")
 
-    st.write(
-        "An AI assistant tried to build a smart playlist engine. "
-        "The code runs, but the behavior is a bit unpredictable."
-    )
+    # st.write(
+    #     "A smart playlist engine. "
+    # )
 
     init_state()
     profile_sidebar()

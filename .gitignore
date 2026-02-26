@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Streamlit
+.streamlit/
+
+# macOS
+.DS_Store
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/

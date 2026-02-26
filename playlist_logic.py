@@ -11,6 +11,12 @@ DEFAULT_PROFILE = {
     "include_mixed": True,
 }
 
+# Genre keywords that push a song toward Hype
+HYPE_GENRE_KEYWORDS = ["rock", "punk", "party"]
+
+# Title keywords that push a song toward Chill (matched case-insensitively)
+CHILL_TITLE_KEYWORDS = ["lofi", "ambient", "sleep"]
+
 
 def normalize_title(title: str) -> str:
     """Normalize a song title for comparisons."""
@@ -68,16 +74,18 @@ def classify_song(song: Song, profile: Dict[str, object]) -> str:
     chill_max_energy = profile.get("chill_max_energy", 3)
     favorite_genre = profile.get("favorite_genre", "")
 
-    hype_keywords = ["rock", "punk", "party"]
-    chill_keywords = ["lofi", "ambient", "sleep"]
+    # Three independent reasons a song is Hype — each checked against its own field
+    is_favorite_genre = genre == favorite_genre
+    is_high_energy = energy >= hype_min_energy
+    genre_has_hype_keyword = any(k in genre for k in HYPE_GENRE_KEYWORDS)
 
-    is_hype_keyword = any(k in genre for k in hype_keywords)
-    # Chill keywords match against title case-insensitively (normalize_title preserves case)
-    is_chill_keyword = any(k in title.lower() for k in chill_keywords)
+    # Two independent reasons a song is Chill
+    is_low_energy = energy <= chill_max_energy
+    title_has_chill_keyword = any(k in title.lower() for k in CHILL_TITLE_KEYWORDS)
 
-    if genre == favorite_genre or energy >= hype_min_energy or is_hype_keyword:
+    if is_favorite_genre or is_high_energy or genre_has_hype_keyword:
         return "Hype"
-    if energy <= chill_max_energy or is_chill_keyword:
+    if is_low_energy or title_has_chill_keyword:
         return "Chill"
     return "Mixed"
 
@@ -100,11 +108,11 @@ def build_playlists(songs: List[Song], profile: Dict[str, object]) -> PlaylistMa
 
 
 def merge_playlists(a: PlaylistMap, b: PlaylistMap) -> PlaylistMap:
-    """Merge two playlist maps into a new map."""
+    """Merge two playlist maps into a new map without mutating the inputs."""
     merged: PlaylistMap = {}
-    for key in set(list(a.keys()) + list(b.keys())):
-        merged[key] = a.get(key, [])
-        merged[key].extend(b.get(key, []))
+    for key in {*a, *b}:
+        # Use + to create a new list rather than extend(), which would mutate a's lists
+        merged[key] = a.get(key, []) + b.get(key, [])
     return merged
 
 
